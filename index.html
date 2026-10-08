@@ -3,62 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A&K Store - منصة البطولات والشحن</title>
-    <!-- ربط ملف التنسيق الخارجي الفخم -->
+    <title>A&K Store</title>
+    <!-- ربط الاستايل والمانيفست للموقع -->
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <!-- مكتبة الأيقونات الاحترافية -->
     <link rel="stylesheet" href="https://cloudflare.com">
-    <link rel="manifest" href="manifest.json">
-
 </head>
 <body>
 
-    <!-- شريط التنقل العلوي (Navbar) -->
+    <!-- الهيدر وأزرار التوجيه العليا -->
     <nav>
-        <a href="#" class="logo" onclick="switchSec('tours')">
-            <i class="fa-solid fa-gamepad"></i> A&K <span>Store</span>
-        </a>
+        <a href="#" class="logo" onclick="switchSec('tours')"><i class="fa-solid fa-gamepad"></i> A&K <span>Store</span></a>
         <div class="nav-links" id="navLinks">
             <button class="nav-btn active" id="btn-tours" onclick="switchSec('tours')">البطولات</button>
             <button class="nav-btn" id="btn-shop" onclick="switchSec('shop')">متجر الشحن</button>
+            <button class="nav-btn" id="btn-chat" onclick="switchSec('chat')" style="display:none;">چات الفريق 💬</button>
             <button class="nav-btn" id="btn-auth" onclick="switchSec('auth')">حسابي</button>
         </div>
     </nav>
 
     <div class="container">
-        <!-- 1. قسم البطولات اليومية النشطة -->
+        <!-- قسم عرض البطولات اليومية -->
         <section id="sec-tours" class="section active">
             <h2 style="margin-bottom:20px;">🏆 البطولات اليومية النشطة</h2>
             <div class="grid" id="toursGrid"></div>
         </section>
 
-        <!-- 2. قسم متجر الشحن الفوري -->
+        <!-- قسم متجر الشحن الفوري -->
         <section id="sec-shop" class="section">
             <h2 style="margin-bottom:20px;">💎 متجر الشحن الفوري</h2>
             <div class="grid" id="shopGrid"></div>
         </section>
-        <!-- 3. قسم الحساب والإدارة -->
+        <!-- 3. غرفة چات المحادثة الخاصة بالسكواد -->
+        <section id="sec-chat" class="section">
+            <h2 style="margin-bottom:20px;">💬 غرفة دردشة السكواد المشفرة</h2>
+            <div class="chat-wrapper">
+                <div class="chat-header">
+                    <span id="chatSquadName" style="font-weight: bold; color: var(--success);">اسم الفريق: -</span>
+                    <span id="chatSquadCode" style="font-size: 13px; color: var(--warn); background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 4px;">كود الفريق: -</span>
+                </div>
+                <div class="chat-messages" id="chatMessagesBox">
+                    <!-- الرسائل تظهر هنا حياً -->
+                </div>
+                <div class="chat-footer">
+                    <input type="text" id="chatInputMessage" class="chat-input" placeholder="اكتب رسالة لأعضاء فريقك هنا...">
+                    <button class="chat-send-btn" onclick="sendSquadMessage()">ارسل</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. الحساب والإدارة -->
         <section id="sec-auth" class="section">
-            <!-- نموذج تسجيل الدخول وإنشاء الحساب المحدث -->
+            <!-- نموذج الدخول وإنشاء الحساب بطلب الواتساب الإجباري -->
             <div id="authBox" class="form-box">
                 <h2 id="authTitle" style="text-align:center; margin-bottom:15px;">تسجيل الدخول للمنصة</h2>
-                <div class="form-group">
-                    <label>اسم المستخدم</label>
-                    <input type="text" id="logUser" class="form-control" placeholder="اسم حسابك">
-                </div>
-                <div class="form-group">
-                    <label>رقم الواتساب الفوري</label>
-                    <input type="text" id="logWa" class="form-control" placeholder="مثال: 01221077526">
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور السرية</label>
-                    <input type="password" id="logPass" class="form-control" placeholder="••••••••">
-                </div>
+                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="logUser" class="form-control" placeholder="اسم حسابك"></div>
+                <div class="form-group"><label>رقم الواتساب الفوري</label><input type="text" id="logWa" class="form-control" placeholder="مثال: 01221077526"></div>
+                <div class="form-group"><label>كلمة المرور السرية</label><input type="password" id="logPass" class="form-control" placeholder="••••••••"></div>
                 <button class="btn" onclick="handleAuth()">دخول المنصة الآمن</button>
                 <p id="toggleTxt" style="text-align:center; margin-top:15px; color:var(--accent); cursor:pointer; font-size:14px;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب متسابق جديد</p>
             </div>
 
-            <!-- لوحة بطاقة اللاعب مع عرض الليفل المحدث -->
+            <!-- بطاقة العضوية للاعب بالليفل -->
             <div id="playerDashboard" class="form-box" style="display:none; max-width:600px; text-align:center;">
                 <h2>بطاقة المتسابق الرسمية</h2>
                 <div style="background:rgba(0,0,0,0.3); border:1px dashed var(--accent); padding:10px; border-radius:8px; font-size:20px; font-weight:bold; color:var(--success); margin:15px 0;" id="lblId">AK-0000</div>
@@ -71,7 +78,7 @@
                 <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
             </div>
 
-            <!-- لوحة الأدمن الكاملة والكنترول -->
+            <!-- لوحة الأدمن والكنترول والتحكم بالليفل حياً -->
             <div id="adminDashboard" style="display:none;">
                 <h2 style="margin-bottom:20px;">👑 لوحة الكنترول والبطولات <button class="btn btn-danger" style="width:100px; float:left;" onclick="logout()">خروج</button></h2>
                 <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
@@ -79,6 +86,14 @@
                         <h3>🏆 إنشاء وتعديل بطولة</h3>
                         <div class="form-group"><label>اسم البطولة</label><input type="text" id="aTitle" class="form-control"></div>
                         <div class="form-group"><label>تفاصيل الجائزة والوقت</label><input type="text" id="aMeta" class="form-control" placeholder="الجائزة 5000 جوهرة | اليوم 10 م"></div>
+                        <div class="form-group">
+                            <label>نظام ونوع المسابقة</label>
+                            <select id="aType" class="form-control">
+                                <option value="solo">👤 صولو (لاعب فردي)</option>
+                                <option value="duo">👥 ثنائي (لاعبين اثنين)</option>
+                                <option value="squad">🎮 سكواد (4 لاعبين)</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label>حالة التسجيل</label>
                             <select id="aStatus" class="form-control">
@@ -99,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- جدول رصد السكوادات وتحديث الليفل حياً من الإدارة -->
                 <div class="form-box" style="max-width:100%; margin-top:20px; overflow-x:auto;">
                     <h3>📊 كشف بيانات السكوادات واللاعبين والتحكم بالليفل حياً</h3>
                     <table>
@@ -117,7 +131,6 @@
                     </table>
                 </div>
 
-                <!-- جدول حذف وإدارة الحالات من السيرفر -->
                 <div class="form-box" style="max-width:100%; margin-top:20px; overflow-x:auto;">
                     <h3>⚙️ التحكم وحذف البطولات من السيرفر</h3>
                     <table>
@@ -136,37 +149,33 @@
         </section>
     </div>
 
-    <!-- نافذة السكواد المنبثقة التفاعلية (إنشاء وانضمام) -->
+    <!-- نافذة السكواد والفرق المنبثقة التفاعلية -->
     <div class="modal" id="squadModal">
         <div class="modal-box">
-            <h3 style="text-align:center; margin-bottom:15px; color:#fff;">📝 التسجيل في البطولة (سكواد 4 لاعبين)</h3>
+            <h3 style="text-align:center; margin-bottom:15px; color:#fff;">📝 التسجيل في البطولة</h3>
             <div class="squad-toggle-box">
-                <button class="tab-btn active" id="tabCreate" onclick="toggleSquadMode('create')">إنشاء سكواد جديد</button>
-                <button class="tab-btn" id="tabJoin" onclick="toggleSquadMode('join')">الانضمام لسكواد جاهز</button>
+                <button class="tab-btn active" id="tabCreate" onclick="toggleSquadMode('create')">إنشاء فريق جديد</button>
+                <button class="tab-btn" id="tabJoin" onclick="toggleSquadMode('join')">الانضمام لفريق جاهز</button>
             </div>
             <input type="hidden" id="modalTourIdx">
             
-            <!-- نموذج إنشاء سكواد جديد -->
             <div id="boxCreateSquad">
-                <div class="form-group"><label>اسم السكواد الخاص بك</label><input type="text" id="sqName" class="form-control" placeholder="اكتب اسم فريقك"></div>
+                <div class="form-group"><label id="lblTeamName">اسم الفريق</label><input type="text" id="sqName" class="form-control" placeholder="اكتب اسم فريقك"></div>
                 <div class="form-group"><label>اسم اللاعب الثاني</label><input type="text" id="sq2" class="form-control"></div>
                 <div class="form-group"><label>اسم اللاعب الثالث</label><input type="text" id="sq3" class="form-control"></div>
                 <div class="form-group"><label>اسم اللاعب الرابع</label><input type="text" id="sq4" class="form-control"></div>
             </div>
             
-            <!-- نموذج الانضمام لسكواد بكود صديق -->
             <div id="boxJoinSquad" style="display:none;">
-                <div class="form-group"><label>ادخل كود السكواد المطلوب الانضمام إليه</label><input type="text" id="sqCodeJoin" class="form-control" placeholder="مثال: SQ-4832"></div>
+                <div class="form-group"><label>ادخل كود الفريق المطلوب الانضمام إليه</label><input type="text" id="sqCodeJoin" class="form-control" placeholder="مثال: TEAM-4832"></div>
             </div>
 
             <button class="btn" onclick="confirmSquad()">تأكيد الحجز والتسجيل</button>
             <button class="btn btn-secondary" style="margin-top:10px; background:#444; color:#fff;" onclick="closeModal()">إلغاء الأمر</button>
         </div>
     </div>
-
-          
-         <script>
-        // إعداد وتخزين البيانات السحابية المحلية لـ A&K Store
+    <script>
+        // إعداد وتأمين قاعدة البيانات المحلية لـ A&K Store
         let db = JSON.parse(localStorage.getItem('ak_db')) || { users: [], tours: [], shop: [], chatMessages: [] };
         let session = JSON.parse(sessionStorage.getItem('ak_ses')) || null;
         let isReg = false;
@@ -207,7 +216,7 @@
                 if(isReg) {
                     if(db.users.find(x => x.name.toLowerCase() === u.toLowerCase())) { alert("اسم هذا المتسابق مسجل مسبقاً بالسيرفر!"); return; }
                     const id = 'AK-' + Math.floor(1000 + Math.random() * 9000);
-                    const newU = { id: id, name: u, pass: p, wa: w, level: 1, myT: [], squad: "", squadCode: "" };
+                    const newU = { id: id, name: u, pass: p, wa: w, level: 1, myT: [], squad: "", squadCode: "", squadDetails: "" };
                     db.users.push(newU); save();
                     session = { role: 'player', data: newU };
                 } else {
@@ -246,7 +255,7 @@
                     document.getElementById('btn-chat').style.display = 'inline-block';
                 }
                 
-                document.getElementById('lblTours').innerText = freshUser.squad ? `[الفريق: ${freshUser.squad}] في بطولة: ${freshUser.myT.join(', ')}` : (freshUser.myT.length > 0 ? freshUser.myT.join(', ') : "غير مسجل ببطولة فردية أو سكواد حالياً");
+                document.getElementById('lblTours').innerText = freshUser.squad ? `[الفريق: ${freshUser.squad}] في بطولة: ${freshUser.myT.join(', ')}` : (freshUser.myT.length > 0 ? freshUser.myT.join(', ') : "غير مسجل ببطولة فردية أو فريق حالياً");
             }
         }
 
@@ -425,25 +434,13 @@
             if(!session) { alert("برجاء تسجيل دخول حسابك أولاً لإتمام مطابقة طلب الشحن الفوري!"); switchSec('auth'); return; }
             let playerLvl = db.users.find(x => x.id === session.data.id)?.level || 1;
             const pNum = "201221077526";
-            const text = "🚀 *طلب شحن فوري وسريع - A&K Store* 🚀\n\n🎯 أريد شحن الحزمة التالية بأقصى سرعة:\n📦 *الباقة المطلوبة:* " + name + "\n💰 *السعر الإجمالي:* " + price + "\n\n👤 *اسم اللاعب:* " + (session.data?.name || 'مسؤول') + "\n🆔 *كود المتسابق الفريد:* " + (session.data?.id || 'Admin-AK') + "\n🎖️ *مستوى المتسابق (LVL):* " + playerLvl + "\n📲 *رقم واتساب العميل:* " + (session.data?.wa || 'مؤكد') + "\n\n⚡ _يرجى مراجعة وتأكيد الدفع للشحن فوراً في أقل من 5 دقائق!_";
+            const text = "🚀 *طلب شحن فوري وسريع - A&K Store* 🚀\n\n🎯 أريد شحن الحزمة التالية بأقصى سرعة:\n📦 *الباقة المطلوبة:* " + name + "\n💰 *السعر الإجمالي:* " + price + "\n\n👤 *اسم اللاعب:* " + (session.data?.name || 'مسؤول') + "\n🆔 *كود المتسابق الفريد:* " + (session.data?.id || 'Admin-AK') + "\n🎖️ *مستوى المتسابق (LVL):* " + playerLvl + "\n📲 *رقم واتساب العميل:* " + (session.data?.wa || 'مؤكد' ) + "\n\n⚡ _يرجى مراجعة وتأكيد الدفع للشحن فوراً في أقل من 5 دقائق!_";
             window.open("https://wa.me" + pNum + "?text=" + encodeURIComponent(text), '_blank');
         }
 
         function renderAdmin() {
             const tu = document.getElementById('tblUsers'); if(!tu) return; tu.innerHTML = "";
-            if(!db.users || db.users.length === 0) { 
-                tu.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد متسابقين مسجلين بالمنصة بعد.</td></tr>'; 
-                return; 
-            }
-            db.users.forEach(u => {
-                let tours = u.myT && u.myT.length > 0 ? u.myT.join(', ') : 'غير مشترك';
-                let currentLvl = u.level || 1;
-                let fullSquadData = u.squad ? u.squad + " (" + u.squadCode + ") <br> <span style='font-size:11px; color:var(--muted);'>" + (u.squadDetails || '') + "</span>" : 'لاعب فردي (صولو)';
-                tu.innerHTML += '<tr><td style="color:var(--success); font-weight:bold;">' + u.id + '</td><td>' + u.name + '</td><td><input type="number" class="lvl-input" value="' + currentLvl + '" onchange="updatePlayerLevel(\'' + u.id + '\', this.value)"></td><td><a href="https://wa.me' + u.wa + '" target="_blank" style="color:var(--success); text-decoration:none;">📲 ' + u.wa + '</a></td><td>' + fullSquadData + '</td><td style="color:var(--primary); font-weight:bold;">' + tours + '</td></tr>';
-            });
-
-            const tc = document.getElementById('tblToursControl'); if(!tc) return; tc.innerHTML = "";
-            if(!db.tours || db.tours.length === 0) { 
+            if (!db.tours || db.tours.length === 0) { 
                 tc.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد بطولات مضافة للتحكم بها.</td></tr>'; 
                 return; 
             }
