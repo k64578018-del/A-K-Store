@@ -163,8 +163,11 @@
             <button class="btn btn-secondary" style="margin-top:10px; background:#444; color:#fff;" onclick="closeModal()">إلغاء الأمر</button>
         </div>
     </div>
-    <script>
-        let db = JSON.parse(localStorage.getItem('ak_db')) || { users: [], tours: [], shop: [] };
+
+          
+         <script>
+        // إعداد وتخزين البيانات السحابية المحلية لـ A&K Store
+        let db = JSON.parse(localStorage.getItem('ak_db')) || { users: [], tours: [], shop: [], chatMessages: [] };
         let session = JSON.parse(sessionStorage.getItem('ak_ses')) || null;
         let isReg = false;
         let squadMode = 'create';
@@ -179,12 +182,15 @@
             const targetBtn = document.getElementById('btn-' + id);
             if(targetSec) targetSec.classList.add('active');
             if(targetBtn) targetBtn.classList.add('active');
-            if(id === 'tours') renderT(); if(id === 'shop') renderS(); if(id === 'auth') viewDash();
+            if(id === 'tours') renderT(); 
+            if(id === 'shop') renderS(); 
+            if(id === 'auth') viewDash();
+            if(id === 'chat') renderSquadChat();
         }
 
         function toggleAuth() {
             isReg = !isReg;
-            document.getElementById('authTitle').innerText = isReg ? "إنشاء حساب متسابق" : "تسجيل الدخول للمنصة";
+            document.getElementById('authTitle').innerText = isReg ? "إنشاء حساب متسابق جديد" : "تسجيل الدخول للمنصة";
             document.getElementById('toggleTxt').innerText = isReg ? "لديك حساب؟ سجل دخول" : "ليس لديك حساب؟ إنشاء حساب متسابق جديد";
         }
 
@@ -193,7 +199,7 @@
             const p = document.getElementById('logPass').value;
             const w = document.getElementById('logWa').value.trim();
             
-            if(!u || !p || !w) { alert("يرجى ملء جميع الخانات (الاسم، الواتساب، الباسورد) للدخول!"); return; }
+            if(!u || !p || !w) { alert("يرجى ملء جميع الخانات (الاسم، الواتساب، الباسورد) للدخول الآمن!"); return; }
 
             if((u === "admin1" && p === "ak123") || (u === "admin2" && p === "ak456")) {
                 session = { role: 'admin', name: u };
@@ -201,7 +207,7 @@
                 if(isReg) {
                     if(db.users.find(x => x.name.toLowerCase() === u.toLowerCase())) { alert("اسم هذا المتسابق مسجل مسبقاً بالسيرفر!"); return; }
                     const id = 'AK-' + Math.floor(1000 + Math.random() * 9000);
-                    const newU = { id: id, name: u, pass: p, wa: w, level: 1, myT: [], squad: "" };
+                    const newU = { id: id, name: u, pass: p, wa: w, level: 1, myT: [], squad: "", squadCode: "" };
                     db.users.push(newU); save();
                     session = { role: 'player', data: newU };
                 } else {
@@ -218,6 +224,8 @@
             document.getElementById('authBox').style.display = 'none';
             document.getElementById('playerDashboard').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('btn-chat').style.display = 'none';
+
             if(!session) {
                 document.getElementById('authBox').style.display = 'block';
                 document.getElementById('btn-auth').innerText = "حسابي";
@@ -233,7 +241,12 @@
                 document.getElementById('lblName').innerText = freshUser.name;
                 document.getElementById('lblPhone').innerText = freshUser.wa;
                 document.getElementById('lblLevel').innerText = freshUser.level || 1;
-                document.getElementById('lblTours').innerText = freshUser.squad ? "[" + freshUser.squad + "] في بطولة: " + freshUser.myT.join(', ') : (freshUser.myT.length > 0 ? freshUser.myT.join(', ') : "غير مسجل ببطولة");
+                
+                if(freshUser.squadCode) {
+                    document.getElementById('btn-chat').style.display = 'inline-block';
+                }
+                
+                document.getElementById('lblTours').innerText = freshUser.squad ? `[الفريق: ${freshUser.squad}] في بطولة: ${freshUser.myT.join(', ')}` : (freshUser.myT.length > 0 ? freshUser.myT.join(', ') : "غير مسجل ببطولة فردية أو سكواد حالياً");
             }
         }
 
@@ -244,6 +257,7 @@
             if(uIdx !== -1) {
                 db.users[uIdx].level = parseInt(newLvl) || 1;
                 save();
+                alert("تم تحديث مستوى اللاعب حياً!");
             }
         }
 
@@ -252,49 +266,71 @@
             const m = document.getElementById('aMeta').value.trim();
             const s = document.getElementById('aStatus').value;
             const w = document.getElementById('aWinner').value.trim();
-            if(!t || !m) { alert("ادخل البيانات الكافية!"); return; }
-            db.tours.push({ title: t, meta: m, status: s, winner: w || null });
-            save(); alert("تم حفظ ونشر البطولة!");
+            const type = document.getElementById('aType') ? document.getElementById('aType').value : 'solo';
+            
+            if(!t || !m) { alert("ادخل بيانات البطولة الكافية!"); return; }
+            db.tours.push({ title: t, meta: m, status: s, winner: w || null, type: type });
+            save(); alert("تم حفظ ونشر البطولة بنجاح!");
             document.getElementById('aTitle').value = ""; document.getElementById('aMeta').value = ""; document.getElementById('aWinner').value = "";
             renderAdmin();
         }
 
         function delTour(idx) {
-            if(confirm("هل تريد حذف هذه البطولة نهائياً؟")) { db.tours.splice(idx, 1); save(); renderAdmin(); }
+            if(confirm("هل تريد حذف هذه البطولة نهائياً ومسح روماتها؟")) { db.tours.splice(idx, 1); save(); renderAdmin(); }
         }
 
         function addShop() {
             const t = document.getElementById('sTitle').value.trim();
             const p = document.getElementById('sPrice').value.trim();
-            if(!t || !p) { alert("ادخل بيانات الباقة!"); return; }
-            db.shop.push({ title: t, price: p }); save(); alert("تمت إضافة عرض الشحن!");
+            if(!t || !p) { alert("ادخل بيانات باقة المتجر!"); return; }
+            db.shop.push({ title: t, price: p }); save(); alert("تمت إضافة عرض الشحن للاستور!");
             document.getElementById('sTitle').value = ""; document.getElementById('sPrice').value = "";
         }
         function renderT() {
             const grid = document.getElementById('toursGrid'); grid.innerHTML = "";
-            if(db.tours.length === 0) { grid.innerHTML = '<div class="empty-state">لا توجد بطولات جارية حالياً.</div>'; return; }
+            if(!db.tours || db.tours.length === 0) { grid.innerHTML = '<div class="empty-state">لا توجد بطولات جارية حالياً بالسيرفر.</div>'; return; }
             db.tours.forEach((t, idx) => {
                 let stTxt = t.status === 'active' ? 'التسجيل شغال' : t.status === 'closed' ? 'التسجيل قفل' : t.status === 'started' ? 'البطولة بدأت' : 'البطولة انتهت';
                 let stCls = t.status === 'active' ? 'status-active' : t.status === 'closed' ? 'status-closed' : t.status === 'started' ? 'status-started' : 'status-ended';
+                let typeTxt = t.type === 'solo' ? '👤 صولو (فردي)' : t.type === 'duo' ? '👥 ثنائي (Duo)' : '🎮 سكواد (Squad)';
                 let winHtml = t.winner ? '<div class="winner-box">👑 الفائز بالبطولة: ' + t.winner + '</div>' : '';
-                let btnHtml = (t.status === 'active') ? '<button class="btn" onclick="openModal(' + idx + ')">حجز واشتراك سكواد (4 لاعبين)</button>' : '<button class="btn btn-secondary" style="background:#333; cursor:not-allowed;" disabled>التسجيل مغلق</button>';
-                grid.innerHTML += '<div class="card"><h3>' + t.title + '</h3><p style="font-size:14px; margin:5px 0; color:var(--muted);">📌 ' + t.meta + '</p><div class="status-badge ' + stCls + '">' + stTxt + '</div>' + winHtml + btnHtml + '</div>';
+                let btnHtml = (t.status === 'active') ? '<button class="btn" onclick="openModal(' + idx + ')">حجز واشتراك فوري <i class="fa-solid fa-circle-check"></i></button>' : '<button class="btn btn-secondary" style="background:#333; cursor:not-allowed;" disabled>التسجيل مغلق حالياً</button>';
+                grid.innerHTML += '<div class="card"><h3>' + t.title + '</h3><p style="font-size:14px; margin:5px 0; color:var(--muted);">📌 ' + t.meta + '</p><div style="font-size:13px; color:var(--warn); font-weight:bold; margin-bottom:5px;">النظام: ' + typeTxt + '</div><div class="status-badge ' + stCls + '">' + stTxt + '</div>' + winHtml + btnHtml + '</div>';
             });
         }
 
         function renderS() {
             const grid = document.getElementById('shopGrid'); grid.innerHTML = "";
-            if(db.shop.length === 0) { grid.innerHTML = '<div class="empty-state">المتجر فارغ حالياً.</div>'; return; }
+            if(!db.shop || db.shop.length === 0) { grid.innerHTML = '<div class="empty-state">المتجر فارغ حالياً من حزم الشحن.</div>'; return; }
             db.shop.forEach(s => {
-                grid.innerHTML += '<div class="card"><h3>' + s.title + '</h3><p style="color:var(--success); font-weight:bold; font-size:20px; margin:10px 0;">' + s.price + '</p><button class="btn" style="background:var(--success);" onclick="orderS(\'' + s.title + '\', \'' + s.price + '\')">شحن فوري</button></div>';
+                grid.innerHTML += '<div class="card"><h3>' + s.title + '</h3><p style="color:var(--success); font-weight:bold; font-size:20px; margin:10px 0;">' + s.price + '</p><button class="btn" style="background:var(--success);" onclick="orderS(\'' + s.title + '\', \'' + s.price + '\')">شحن فوري سريع</button></div>';
             });
         }
 
         function openModal(idx) {
             if(!session || session.role !== 'player') { alert("سجل دخول حسابك أولاً برقم الواتساب من تبويب حسابي!"); switchSec('auth'); return; }
             document.getElementById('modalTourIdx').value = idx;
-            toggleSquadMode('create');
-            document.getElementById('squadModal').style.display = 'flex';
+            
+            const tType = db.tours[idx].type || 'solo';
+            const tourTitle = db.tours[idx].title;
+            let uData = db.users.find(x => x.id === session.data.id);
+            if (uData.myT.includes(tourTitle)) { alert("أنت مسجل بالفعل في هذه البطولة!"); return; }
+
+            if (tType === 'solo') {
+                if(confirm("هل تريد الاشتراك فوراً في بطولة صولو [ " + tourTitle + " ]؟")) {
+                    uData.myT.push(tourTitle);
+                    save();
+                    session.data = uData; sessionStorage.setItem('ak_ses', JSON.stringify(session));
+                    alert("تم تسجيلك في البطولة الفردية (صولو) بنجاح!");
+                    viewDash(); renderT();
+                }
+            } else {
+                toggleSquadMode('create');
+                document.getElementById('sqName').placeholder = tType === 'duo' ? "اسم الفريق الثنائي" : "اكتب اسم فريقك (السكواد)";
+                document.getElementById('sq3').parentNode.style.display = tType === 'duo' ? 'none' : 'block';
+                document.getElementById('sq4').parentNode.style.display = tType === 'duo' ? 'none' : 'block';
+                document.getElementById('squadModal').style.display = 'flex';
+            }
         }
         function closeModal() { document.getElementById('squadModal').style.display = 'none'; }
 
@@ -308,14 +344,10 @@
 
         function confirmSquad() {
             const idx = document.getElementById('modalTourIdx').value;
-            const tourTitle = db.tours[idx].title;
+            const targetTour = db.tours[idx];
+            const tourTitle = targetTour.title;
+            const tType = targetTour.type || 'solo';
             let uData = db.users.find(x => x.id === session.data.id);
-            
-            if (uData.myT.includes(tourTitle)) { 
-                alert("أنت مسجل بالفعل في هذه البطولة!"); 
-                closeModal(); 
-                return; 
-            }
 
             if (squadMode === 'create') {
                 const sName = document.getElementById('sqName').value.trim();
@@ -323,34 +355,70 @@
                 const s3 = document.getElementById('sq3').value.trim();
                 const s4 = document.getElementById('sq4').value.trim();
                 
-                if (!sName || !s2 || !s3 || !s4) { 
-                    alert("يرجى ملء اسم السكواد وأعضاء الفريق بالكامل (4 لاعبين)!"); 
-                    return; 
-                }
+                if (!sName || !s2) { alert("يرجى ملء اسم الفريق واسم زميلك بالكامل!"); return; }
+                if (tType === 'squad' && (!s3 || !s4)) { alert("يرجى ملء أسماء أفراد السكواد الأربعة بالكامل!"); return; }
                 
-                const sqCode = 'SQ-' + Math.floor(1000 + Math.random() * 9000);
-                uData.squad = sName + " (كود: " + sqCode + ") [الأعضاء: " + session.data.name + ", " + s2 + ", " + s3 + ", " + s4 + "]";
-                alert("تم إنشاء السكواد بنجاح! كود فريقك هو: " + sqCode + "\nأعطِ هذا الكود لأصدقائك لينضموا إليك.");
+                const sqCode = 'TEAM-' + Math.floor(1000 + Math.random() * 9000);
+                uData.squad = sName;
+                uData.squadCode = sqCode;
+                uData.squadDetails = tType === 'duo' ? "[ثنائي: " + session.data.name + " (القائد)، " + s2 + "]" : "[سكواد: " + session.data.name + " (القائد)، " + s2 + "، " + s3 + "، " + s4 + "]";
+                
+                alert("تم إنشاء الفريق بنجاح! كود فريقك المشترك هو: " + sqCode + "\nأعطِ هذا الكود لزميلك لينضم للغرفة.");
             } else {
                 const sCodeJoin = document.getElementById('sqCodeJoin').value.trim();
-                if (!sCodeJoin) { 
-                    alert("أدخل كود السكواد للانضمام!"); 
-                    return; 
-                }
-                let found = db.users.find(x => x.squad && x.squad.includes(sCodeJoin));
-                if (!found) { alert("كود السكواد هذا غير صحيح أو غير مسجل!"); return; }
-                uData.squad = "منضم للسكواد كود: " + sCodeJoin;
+                if (!sCodeJoin) { alert("أدخل كود الفريق للانضمام لفريق أصدقائك!"); return; }
+                let foundSquad = db.users.find(x => x.squadCode === sCodeJoin);
+                if (!foundSquad) { alert("كود الفريق هذا غير صحيح أو لم يتم إنشاؤه بعد!"); return; }
+                uData.squad = foundSquad.squad;
+                uData.squadCode = foundSquad.squadCode;
+                uData.squadDetails = foundSquad.squadDetails;
             }
 
             uData.myT.push(tourTitle);
             save();
-            
-            session.data = uData; 
-            sessionStorage.setItem('ak_ses', JSON.stringify(session));
-            
+            session.data = uData; sessionStorage.setItem('ak_ses', JSON.stringify(session));
             closeModal(); 
-            alert("تم حجز تذكرتك وتثبيت بيانات الفريق بنجاح في الكنترول!");
-            viewDash();
+            alert("تم حجز التذكرة وتثبيت بيانات الفريق بنجاح في الكنترول!");
+            viewDash(); renderT();
+        }
+
+        function renderSquadChat() {
+            const chatBox = document.getElementById('chatMessagesBox');
+            if(!chatBox) return; chatBox.innerHTML = "";
+            let myData = db.users.find(x => x.id === session.data.id);
+            
+            if(!myData || !myData.squadCode) {
+                chatBox.innerHTML = '<div style="color:var(--accent); text-align:center; padding:20px;">أنت غير مشترك في أي فريق (ثنائي أو سكواد) حالياً لدخول چات الغرفة!</div>';
+                return;
+            }
+            
+            document.getElementById('chatSquadName').innerText = "اسم الفريق: " + myData.squad;
+            document.getElementById('chatSquadCode').innerText = "كود الفريق: " + myData.squadCode;
+            
+            let filteredMsgs = db.chatMessages.filter(m => m.code === myData.squadCode);
+            if(filteredMsgs.length === 0) {
+                chatBox.innerHTML = '<div style="color:var(--muted); text-align:center; padding:20px; font-size:13px;">لا توجد رسائل سابقة. قُم ببدء المحادثة مع فريقك وتنسيق الخطة!</div>';
+            } else {
+                filteredMsgs.forEach(m => {
+                    let isSelf = m.senderId === session.data.id;
+                    let rowClass = isSelf ? 'msg-self' : 'msg-other';
+                    chatBox.innerHTML += '<div class="msg-row ' + rowClass + '"><span class="msg-sender">' + m.senderName + '</span><div>' + m.text + '</div><span class="msg-time">' + m.time + '</span></div>';
+                });
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendSquadMessage() {
+            const inp = document.getElementById('chatInputMessage');
+            const msgText = inp.value.trim();
+            if(!msgText) return;
+            
+            let myData = db.users.find(x => x.id === session.data.id);
+            let now = new Date();
+            let timeStr = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+            
+            db.chatMessages.push({ code: myData.squadCode, senderId: session.data.id, senderName: session.data.name, text: msgText, time: timeStr });
+            save(); inp.value = ""; renderSquadChat();
         }
 
         function orderS(name, price) {
@@ -362,31 +430,29 @@
         }
 
         function renderAdmin() {
-            const tu = document.getElementById('tblUsers'); tu.innerHTML = "";
-            if(db.users.length === 0) { tu.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد متسابقين مسجلين بالمنصة بعد.</td></tr>'; }
+            const tu = document.getElementById('tblUsers'); if(!tu) return; tu.innerHTML = "";
+            if(!db.users || db.users.length === 0) { 
+                tu.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد متسابقين مسجلين بالمنصة بعد.</td></tr>'; 
+                return; 
+            }
             db.users.forEach(u => {
-                let tours = u.myT.length > 0 ? u.myT.join(', ') : 'غير مشترك';
+                let tours = u.myT && u.myT.length > 0 ? u.myT.join(', ') : 'غير مشترك';
                 let currentLvl = u.level || 1;
-                tu.innerHTML += '<tr><td style="color:var(--success); font-weight:bold;">' + u.id + '</td><td>' + u.name + '</td><td><input type="number" class="lvl-input" value="' + currentLvl + '" onchange="updatePlayerLevel(\'' + u.id + '\', this.value)"></td><td><a href="https://wa.me' + u.wa + '" target="_blank" style="color:var(--success); text-decoration:none;">📲 ' + u.wa + '</a></td><td>' + (u.squad || 'لاعب فردي') + '</td><td style="color:var(--primary); font-weight:bold;">' + tours + '</td></tr>';
+                let fullSquadData = u.squad ? u.squad + " (" + u.squadCode + ") <br> <span style='font-size:11px; color:var(--muted);'>" + (u.squadDetails || '') + "</span>" : 'لاعب فردي (صولو)';
+                tu.innerHTML += '<tr><td style="color:var(--success); font-weight:bold;">' + u.id + '</td><td>' + u.name + '</td><td><input type="number" class="lvl-input" value="' + currentLvl + '" onchange="updatePlayerLevel(\'' + u.id + '\', this.value)"></td><td><a href="https://wa.me' + u.wa + '" target="_blank" style="color:var(--success); text-decoration:none;">📲 ' + u.wa + '</a></td><td>' + fullSquadData + '</td><td style="color:var(--primary); font-weight:bold;">' + tours + '</td></tr>';
             });
 
-            const tc = document.getElementById('tblToursControl'); tc.innerHTML = "";
-            if(db.tours.length === 0) { tc.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد بطولات مضافة للتحكم بها.</td></tr>'; return; }
+            const tc = document.getElementById('tblToursControl'); if(!tc) return; tc.innerHTML = "";
+            if(!db.tours || db.tours.length === 0) { 
+                tc.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد بطولات مضافة للتحكم بها.</td></tr>'; 
+                return; 
+            }
             db.tours.forEach((t, idx) => {
                 let st = t.status === 'active' ? 'شغال' : t.status === 'closed' ? 'قفل' : t.status === 'started' ? 'بدأت' : 'انتهت';
-                tc.innerHTML += '<tr><td>' + t.title + '</td><td>' + st + '</td><td>' + (t.winner || 'لا يوجد فائز') + '</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px; width:auto; margin:0;" onclick="delTour(' + idx + ')">حذف ❌</button></td></tr>';
+                let tTypeTxt = t.type === 'solo' ? 'صولو' : t.type === 'duo' ? 'ثنائي' : 'سكواد';
+                tc.innerHTML += '<tr><td>' + t.title + ' [' + tTypeTxt + ']</td><td>' + st + '</td><td>' + (t.winner || 'لا يوجد فائز بعد') + '</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px; width:auto; margin:0;" onclick="delTour(' + idx + ')">حذف ❌</button></td></tr>';
             });
         }
-        // تسجيل كود التطبيق الذكي PWA في متصفح المستخدم
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js")
-            .then(reg => console.log("تم تفعيل نظام التطبيق بنجاح!"))
-            .catch(err => console.log("خطأ في تسجيل النظام"));
-    });
-}
-
     </script>
 </body>
 </html>
-    
