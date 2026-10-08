@@ -1,0 +1,19 @@
+{
+  "nav_mode": "fullscreen",
+  "name": "A&K Store Platform",
+  "short_name": "A&K Store",
+  "description": "منصة البطولات والشحن الفوري لـ A&K Store",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#ff4a5a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://googleusercontent.com",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

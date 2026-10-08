@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A&K Store - منصة البطولات والشحن</title>
+    <!-- ربط ملف التنسيق الخارجي الفخم -->
+    <link rel="stylesheet" href="style.css">
+    <!-- مكتبة الأيقونات الاحترافية -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="manifest" href="manifest.json">
+
+</head>
+<body>
+
+    <!-- شريط التنقل العلوي (Navbar) -->
+    <nav>
+        <a href="#" class="logo" onclick="switchSec('tours')">
+            <i class="fa-solid fa-gamepad"></i> A&K <span>Store</span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <button class="nav-btn active" id="btn-tours" onclick="switchSec('tours')">البطولات</button>
+            <button class="nav-btn" id="btn-shop" onclick="switchSec('shop')">متجر الشحن</button>
+            <button class="nav-btn" id="btn-auth" onclick="switchSec('auth')">حسابي</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 1. قسم البطولات اليومية النشطة -->
+        <section id="sec-tours" class="section active">
+            <h2 style="margin-bottom:20px;">🏆 البطولات اليومية النشطة</h2>
+            <div class="grid" id="toursGrid"></div>
+        </section>
+
+        <!-- 2. قسم متجر الشحن الفوري -->
+        <section id="sec-shop" class="section">
+            <h2 style="margin-bottom:20px;">💎 متجر الشحن الفوري</h2>
+            <div class="grid" id="shopGrid"></div>
+        </section>
+        <!-- 3. قسم الحساب والإدارة -->
+        <section id="sec-auth" class="section">
+            <!-- نموذج تسجيل الدخول وإنشاء الحساب المحدث -->
+            <div id="authBox" class="form-box">
+                <h2 id="authTitle" style="text-align:center; margin-bottom:15px;">تسجيل الدخول للمنصة</h2>
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="logUser" class="form-control" placeholder="اسم حسابك">
+                </div>
+                <div class="form-group">
+                    <label>رقم الواتساب الفوري</label>
+                    <input type="text" id="logWa" class="form-control" placeholder="مثال: 01221077526">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور السرية</label>
+                    <input type="password" id="logPass" class="form-control" placeholder="••••••••">
+                </div>
+                <button class="btn" onclick="handleAuth()">دخول المنصة الآمن</button>
+                <p id="toggleTxt" style="text-align:center; margin-top:15px; color:var(--accent); cursor:pointer; font-size:14px;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب متسابق جديد</p>
+            </div>
+
+            <!-- لوحة بطاقة اللاعب مع عرض الليفل المحدث -->
+            <div id="playerDashboard" class="form-box" style="display:none; max-width:600px; text-align:center;">
+                <h2>بطاقة المتسابق الرسمية</h2>
+                <div style="background:rgba(0,0,0,0.3); border:1px dashed var(--accent); padding:10px; border-radius:8px; font-size:20px; font-weight:bold; color:var(--success); margin:15px 0;" id="lblId">AK-0000</div>
+                <div style="text-align:right; background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; margin-bottom:15px;">
+                    <p><strong>الاسم:</strong> <span id="lblName">-</span></p>
+                    <p style="margin:8px 0;"><strong>الواتساب:</strong> <span id="lblPhone">-</span></p>
+                    <p style="margin-bottom:8px;"><strong>المستوى الحالي (LVL):</strong> <span id="lblLevel" style="color:var(--warn); font-weight:bold; font-size:18px;">1</span></p>
+                    <p><strong>السكواد الحالي والبطولات:</strong> <span id="lblTours" style="color:var(--success)">-</span></p>
+                </div>
+                <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
+            </div>
+
+            <!-- لوحة الأدمن الكاملة والكنترول -->
+            <div id="adminDashboard" style="display:none;">
+                <h2 style="margin-bottom:20px;">👑 لوحة الكنترول والبطولات <button class="btn btn-danger" style="width:100px; float:left;" onclick="logout()">خروج</button></h2>
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                    <div class="form-box" style="margin:0; max-width:100%;">
+                        <h3>🏆 إنشاء وتعديل بطولة</h3>
+                        <div class="form-group"><label>اسم البطولة</label><input type="text" id="aTitle" class="form-control"></div>
+                        <div class="form-group"><label>تفاصيل الجائزة والوقت</label><input type="text" id="aMeta" class="form-control" placeholder="الجائزة 5000 جوهرة | اليوم 10 م"></div>
+                        <div class="form-group">
+                            <label>حالة التسجيل</label>
+                            <select id="aStatus" class="form-control">
+                                <option value="active">التسجيل شغال</option>
+                                <option value="closed">التسجيل قفل</option>
+                                <option value="started">البطولة بدأت</option>
+                                <option value="ended">البطولة انتهت</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>اسم يوزر اللاعب الفائز (إن وجد)</label><input type="text" id="aWinner" class="form-control"></div>
+                        <button class="btn" onclick="addTour()">إطلاق البطولة</button>
+                    </div>
+                    <div class="form-box" style="margin:0; max-width:100%;">
+                        <h3>💎 إضافة باقة شحن</h3>
+                        <div class="form-group"><label>اسم الباقة</label><input type="text" id="sTitle" class="form-control" placeholder="600 شدة ببجي"></div>
+                        <div class="form-group"><label>السعر</label><input type="text" id="sPrice" class="form-control" placeholder="150 جنيه"></div>
+                        <button class="btn" style="background:var(--success);" onclick="addShop()">تحديث المتجر</button>
+                    </div>
+                </div>
+
+                <!-- جدول رصد السكوادات وتحديث الليفل حياً من الإدارة -->
+                <div class="form-box" style="max-width:100%; margin-top:20px; overflow-x:auto;">
+                    <h3>📊 كشف بيانات السكوادات واللاعبين والتحكم بالليفل حياً</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>كود ID</th>
+                                <th>قائد الفريق</th>
+                                <th>تعديل الليفل</th>
+                                <th>واتساب</th>
+                                <th>اسم السكواد وبيانات الأعضاء</th>
+                                <th>البطولات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblUsers"></tbody>
+                    </table>
+                </div>
+
+                <!-- جدول حذف وإدارة الحالات من السيرفر -->
+                <div class="form-box" style="max-width:100%; margin-top:20px; overflow-x:auto;">
+                    <h3>⚙️ التحكم وحذف البطولات من السيرفر</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>اسم البطولة</th>
+                                <th>الحالة</th>
+                                <th>الفائز</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblToursControl"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- نافذة السكواد المنبثقة التفاعلية (إنشاء وانضمام) -->
+    <div class="modal" id="squadModal">
+        <div class="modal-box">
+            <h3 style="text-align:center; margin-bottom:15px; color:#fff;">📝 التسجيل في البطولة (سكواد 4 لاعبين)</h3>
+            <div class="squad-toggle-box">
+                <button class="tab-btn active" id="tabCreate" onclick="toggleSquadMode('create')">إنشاء سكواد جديد</button>
+                <button class="tab-btn" id="tabJoin" onclick="toggleSquadMode('join')">الانضمام لسكواد جاهز</button>
+            </div>
+            <input type="hidden" id="modalTourIdx">
+            
+            <!-- نموذج إنشاء سكواد جديد -->
+            <div id="boxCreateSquad">
+                <div class="form-group"><label>اسم السكواد الخاص بك</label><input type="text" id="sqName" class="form-control" placeholder="اكتب اسم فريقك"></div>
+                <div class="form-group"><label>اسم اللاعب الثاني</label><input type="text" id="sq2" class="form-control"></div>
+                <div class="form-group"><label>اسم اللاعب الثالث</label><input type="text" id="sq3" class="form-control"></div>
+                <div class="form-group"><label>اسم اللاعب الرابع</label><input type="text" id="sq4" class="form-control"></div>
+            </div>
+            
+            <!-- نموذج الانضمام لسكواد بكود صديق -->
+            <div id="boxJoinSquad" style="display:none;">
+                <div class="form-group"><label>ادخل كود السكواد المطلوب الانضمام إليه</label><input type="text" id="sqCodeJoin" class="form-control" placeholder="مثال: SQ-4832"></div>
+            </div>
+
+            <button class="btn" onclick="confirmSquad()">تأكيد الحجز والتسجيل</button>
+            <button class="btn btn-secondary" style="margin-top:10px; background:#444; color:#fff;" onclick="closeModal()">إلغاء الأمر</button>
+        </div>
+    </div>
+    <script>
+        let db = JSON.parse(localStorage.getItem('ak_db')) || { users: [], tours: [], shop: [] };
+        let session = JSON.parse(sessionStorage.getItem('ak_ses')) || null;
+        let isReg = false;
+        let squadMode = 'create';
+
+        function save() { localStorage.setItem('ak_db', JSON.stringify(db)); }
+        window.onload = function() { renderT(); renderS(); viewDash(); };
+
+        function switchSec(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const targetSec = document.getElementById('sec-' + id);
+            const targetBtn = document.getElementById('btn-' + id);
+            if(targetSec) targetSec.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
+            if(id === 'tours') renderT(); if(id === 'shop') renderS(); if(id === 'auth') viewDash();
+        }
+
+        function toggleAuth() {
+            isReg = !isReg;
+            document.getElementById('authTitle').innerText = isReg ? "إنشاء حساب متسابق" : "تسجيل الدخول للمنصة";
+            document.getElementById('toggleTxt').innerText = isReg ? "لديك حساب؟ سجل دخول" : "ليس لديك حساب؟ إنشاء حساب متسابق جديد";
+        }
+
+        function handleAuth() {
+            const u = document.getElementById('logUser').value.trim();
+            const p = document.getElementById('logPass').value;
+            const w = document.getElementById('logWa').value.trim();
+            
+            if(!u || !p || !w) { alert("يرجى ملء جميع الخانات (الاسم، الواتساب، الباسورد) للدخول!"); return; }
+
+            if((u === "admin1" && p === "ak123") || (u === "admin2" && p === "ak456")) {
+                session = { role: 'admin', name: u };
+            } else {
+                if(isReg) {
+                    if(db.users.find(x => x.name.toLowerCase() === u.toLowerCase())) { alert("اسم هذا المتسابق مسجل مسبقاً بالسيرفر!"); return; }
+                    const id = 'AK-' + Math.floor(1000 + Math.random() * 9000);
+                    const newU = { id: id, name: u, pass: p, wa: w, level: 1, myT: [], squad: "" };
+                    db.users.push(newU); save();
+                    session = { role: 'player', data: newU };
+                } else {
+                    const found = db.users.find(x => x.name.toLowerCase() === u.toLowerCase() && x.pass === p && x.wa === w);
+                    if(!found) { alert("خطأ في بيانات الحساب أو رقم الواتساب المربوط!"); return; }
+                    session = { role: 'player', data: found };
+                }
+            }
+            sessionStorage.setItem('ak_ses', JSON.stringify(session));
+            viewDash();
+        }
+
+        function viewDash() {
+            document.getElementById('authBox').style.display = 'none';
+            document.getElementById('playerDashboard').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'none';
+            if(!session) {
+                document.getElementById('authBox').style.display = 'block';
+                document.getElementById('btn-auth').innerText = "حسابي";
+            } else if(session.role === 'admin') {
+                document.getElementById('adminDashboard').style.display = 'block';
+                document.getElementById('btn-auth').innerText = "الكنترول";
+                renderAdmin();
+            } else {
+                let freshUser = db.users.find(x => x.id === session.data.id) || session.data;
+                document.getElementById('playerDashboard').style.display = 'block';
+                document.getElementById('btn-auth').innerText = freshUser.name;
+                document.getElementById('lblId').innerText = freshUser.id;
+                document.getElementById('lblName').innerText = freshUser.name;
+                document.getElementById('lblPhone').innerText = freshUser.wa;
+                document.getElementById('lblLevel').innerText = freshUser.level || 1;
+                document.getElementById('lblTours').innerText = freshUser.squad ? "[" + freshUser.squad + "] في بطولة: " + freshUser.myT.join(', ') : (freshUser.myT.length > 0 ? freshUser.myT.join(', ') : "غير مسجل ببطولة");
+            }
+        }
+
+        function logout() { session = null; sessionStorage.removeItem('ak_ses'); switchSec('tours'); }
+
+        function updatePlayerLevel(userId, newLvl) {
+            let uIdx = db.users.findIndex(x => x.id === userId);
+            if(uIdx !== -1) {
+                db.users[uIdx].level = parseInt(newLvl) || 1;
+                save();
+            }
+        }
+
+        function addTour() {
+            const t = document.getElementById('aTitle').value.trim();
+            const m = document.getElementById('aMeta').value.trim();
+            const s = document.getElementById('aStatus').value;
+            const w = document.getElementById('aWinner').value.trim();
+            if(!t || !m) { alert("ادخل البيانات الكافية!"); return; }
+            db.tours.push({ title: t, meta: m, status: s, winner: w || null });
+            save(); alert("تم حفظ ونشر البطولة!");
+            document.getElementById('aTitle').value = ""; document.getElementById('aMeta').value = ""; document.getElementById('aWinner').value = "";
+            renderAdmin();
+        }
+
+        function delTour(idx) {
+            if(confirm("هل تريد حذف هذه البطولة نهائياً؟")) { db.tours.splice(idx, 1); save(); renderAdmin(); }
+        }
+
+        function addShop() {
+            const t = document.getElementById('sTitle').value.trim();
+            const p = document.getElementById('sPrice').value.trim();
+            if(!t || !p) { alert("ادخل بيانات الباقة!"); return; }
+            db.shop.push({ title: t, price: p }); save(); alert("تمت إضافة عرض الشحن!");
+            document.getElementById('sTitle').value = ""; document.getElementById('sPrice').value = "";
+        }
+        function renderT() {
+            const grid = document.getElementById('toursGrid'); grid.innerHTML = "";
+            if(db.tours.length === 0) { grid.innerHTML = '<div class="empty-state">لا توجد بطولات جارية حالياً.</div>'; return; }
+            db.tours.forEach((t, idx) => {
+                let stTxt = t.status === 'active' ? 'التسجيل شغال' : t.status === 'closed' ? 'التسجيل قفل' : t.status === 'started' ? 'البطولة بدأت' : 'البطولة انتهت';
+                let stCls = t.status === 'active' ? 'status-active' : t.status === 'closed' ? 'status-closed' : t.status === 'started' ? 'status-started' : 'status-ended';
+                let winHtml = t.winner ? '<div class="winner-box">👑 الفائز بالبطولة: ' + t.winner + '</div>' : '';
+                let btnHtml = (t.status === 'active') ? '<button class="btn" onclick="openModal(' + idx + ')">حجز واشتراك سكواد (4 لاعبين)</button>' : '<button class="btn btn-secondary" style="background:#333; cursor:not-allowed;" disabled>التسجيل مغلق</button>';
+                grid.innerHTML += '<div class="card"><h3>' + t.title + '</h3><p style="font-size:14px; margin:5px 0; color:var(--muted);">📌 ' + t.meta + '</p><div class="status-badge ' + stCls + '">' + stTxt + '</div>' + winHtml + btnHtml + '</div>';
+            });
+        }
+
+        function renderS() {
+            const grid = document.getElementById('shopGrid'); grid.innerHTML = "";
+            if(db.shop.length === 0) { grid.innerHTML = '<div class="empty-state">المتجر فارغ حالياً.</div>'; return; }
+            db.shop.forEach(s => {
+                grid.innerHTML += '<div class="card"><h3>' + s.title + '</h3><p style="color:var(--success); font-weight:bold; font-size:20px; margin:10px 0;">' + s.price + '</p><button class="btn" style="background:var(--success);" onclick="orderS(\'' + s.title + '\', \'' + s.price + '\')">شحن فوري</button></div>';
+            });
+        }
+
+        function openModal(idx) {
+            if(!session || session.role !== 'player') { alert("سجل دخول حسابك أولاً برقم الواتساب من تبويب حسابي!"); switchSec('auth'); return; }
+            document.getElementById('modalTourIdx').value = idx;
+            toggleSquadMode('create');
+            document.getElementById('squadModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('squadModal').style.display = 'none'; }
+
+        function toggleSquadMode(mode) {
+            squadMode = mode;
+            document.getElementById('tabCreate').classList.toggle('active', mode === 'create');
+            document.getElementById('tabJoin').classList.toggle('active', mode === 'join');
+            document.getElementById('boxCreateSquad').style.display = mode === 'create' ? 'block' : 'none';
+            document.getElementById('boxJoinSquad').style.display = mode === 'join' ? 'block' : 'none';
+        }
+
+        function confirmSquad() {
+            const idx = document.getElementById('modalTourIdx').value;
+            const tourTitle = db.tours[idx].title;
+            let uData = db.users.find(x => x.id === session.data.id);
+            
+            if (uData.myT.includes(tourTitle)) { 
+                alert("أنت مسجل بالفعل في هذه البطولة!"); 
+                closeModal(); 
+                return; 
+            }
+
+            if (squadMode === 'create') {
+                const sName = document.getElementById('sqName').value.trim();
+                const s2 = document.getElementById('sq2').value.trim();
+                const s3 = document.getElementById('sq3').value.trim();
+                const s4 = document.getElementById('sq4').value.trim();
+                
+                if (!sName || !s2 || !s3 || !s4) { 
+                    alert("يرجى ملء اسم السكواد وأعضاء الفريق بالكامل (4 لاعبين)!"); 
+                    return; 
+                }
+                
+                const sqCode = 'SQ-' + Math.floor(1000 + Math.random() * 9000);
+                uData.squad = sName + " (كود: " + sqCode + ") [الأعضاء: " + session.data.name + ", " + s2 + ", " + s3 + ", " + s4 + "]";
+                alert("تم إنشاء السكواد بنجاح! كود فريقك هو: " + sqCode + "\nأعطِ هذا الكود لأصدقائك لينضموا إليك.");
+            } else {
+                const sCodeJoin = document.getElementById('sqCodeJoin').value.trim();
+                if (!sCodeJoin) { 
+                    alert("أدخل كود السكواد للانضمام!"); 
+                    return; 
+                }
+                let found = db.users.find(x => x.squad && x.squad.includes(sCodeJoin));
+                if (!found) { alert("كود السكواد هذا غير صحيح أو غير مسجل!"); return; }
+                uData.squad = "منضم للسكواد كود: " + sCodeJoin;
+            }
+
+            uData.myT.push(tourTitle);
+            save();
+            
+            session.data = uData; 
+            sessionStorage.setItem('ak_ses', JSON.stringify(session));
+            
+            closeModal(); 
+            alert("تم حجز تذكرتك وتثبيت بيانات الفريق بنجاح في الكنترول!");
+            viewDash();
+        }
+
+        function orderS(name, price) {
+            if(!session) { alert("برجاء تسجيل دخول حسابك أولاً لإتمام مطابقة طلب الشحن الفوري!"); switchSec('auth'); return; }
+            let playerLvl = db.users.find(x => x.id === session.data.id)?.level || 1;
+            const pNum = "201221077526";
+            const text = "🚀 *طلب شحن فوري وسريع - A&K Store* 🚀\n\n🎯 أريد شحن الحزمة التالية بأقصى سرعة:\n📦 *الباقة المطلوبة:* " + name + "\n💰 *السعر الإجمالي:* " + price + "\n\n👤 *اسم اللاعب:* " + (session.data?.name || 'مسؤول') + "\n🆔 *كود المتسابق الفريد:* " + (session.data?.id || 'Admin-AK') + "\n🎖️ *مستوى المتسابق (LVL):* " + playerLvl + "\n📲 *رقم واتساب العميل:* " + (session.data?.wa || 'مؤكد') + "\n\n⚡ _يرجى مراجعة وتأكيد الدفع للشحن فوراً في أقل من 5 دقائق!_";
+            window.open("https://wa.me" + pNum + "?text=" + encodeURIComponent(text), '_blank');
+        }
+
+        function renderAdmin() {
+            const tu = document.getElementById('tblUsers'); tu.innerHTML = "";
+            if(db.users.length === 0) { tu.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد متسابقين مسجلين بالمنصة بعد.</td></tr>'; }
+            db.users.forEach(u => {
+                let tours = u.myT.length > 0 ? u.myT.join(', ') : 'غير مشترك';
+                let currentLvl = u.level || 1;
+                tu.innerHTML += '<tr><td style="color:var(--success); font-weight:bold;">' + u.id + '</td><td>' + u.name + '</td><td><input type="number" class="lvl-input" value="' + currentLvl + '" onchange="updatePlayerLevel(\'' + u.id + '\', this.value)"></td><td><a href="https://wa.me' + u.wa + '" target="_blank" style="color:var(--success); text-decoration:none;">📲 ' + u.wa + '</a></td><td>' + (u.squad || 'لاعب فردي') + '</td><td style="color:var(--primary); font-weight:bold;">' + tours + '</td></tr>';
+            });
+
+            const tc = document.getElementById('tblToursControl'); tc.innerHTML = "";
+            if(db.tours.length === 0) { tc.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد بطولات مضافة للتحكم بها.</td></tr>'; return; }
+            db.tours.forEach((t, idx) => {
+                let st = t.status === 'active' ? 'شغال' : t.status === 'closed' ? 'قفل' : t.status === 'started' ? 'بدأت' : 'انتهت';
+                tc.innerHTML += '<tr><td>' + t.title + '</td><td>' + st + '</td><td>' + (t.winner || 'لا يوجد فائز') + '</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px; width:auto; margin:0;" onclick="delTour(' + idx + ')">حذف ❌</button></td></tr>';
+            });
+        }
+        // تسجيل كود التطبيق الذكي PWA في متصفح المستخدم
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js")
+            .then(reg => console.log("تم تفعيل نظام التطبيق بنجاح!"))
+            .catch(err => console.log("خطأ في تسجيل النظام"));
+    });
+}
+
+    </script>
+</body>
+</html>
+    
